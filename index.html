@@ -1,0 +1,85 @@
+<head>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+
+<body></body>
+
+<script>
+  const width = 800;
+  const height = 400;
+  const svg = d3
+    .select("body")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  const margin = { top: 10, left: 10, right: 10, bottom: 10 };
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
+
+  const plot = svg
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  const nodes = d3.range(200).map((d) => ({
+    value: d,
+  }));
+
+  const simulation = d3
+    .forceSimulation(nodes)
+    .force("center", d3.forceCenter(innerWidth / 2, innerHeight / 2))
+    .force(
+      "x",
+      d3.forceX((d) => innerWidth + (d.value % 2 === 0 ? 100 : -100))
+    )
+    .force("y", d3.forceY(innerHeight / 2))
+    .force("collide", d3.forceCollide(5))
+    .force("charge", d3.forceManyBody().strength(-7))
+    .on("tick", ticked);
+
+  function ticked() {
+    plot
+      .selectAll("circle")
+      .data(nodes)
+      .join("circle")
+      .attr("r", 5)
+      .attr("cx", (d) => d.x)
+      .attr("cy", (d) => d.y);
+  }
+  let i = 0;
+  plot
+    .append("rect")
+    .attr("width", 100)
+    .attr("height", 100)
+    .on("click", () => {
+      i++;
+      if (i % 5 === 0) {
+        simulation
+          .force(
+            "x",
+            d3.forceX((d) => {
+              return d.value;
+            })
+          )
+          .force(
+            "y",
+            d3.forceX((d) => {
+              return d.value;
+            })
+          );
+        simulation.alpha(1).alphaTarget(0).alphaDecay(0.1).restart();
+      } else {
+        simulation
+          .force(
+            "x",
+            d3
+              .forceX((d) => {
+                return innerWidth + ((d.value + i) % 2 === 0 ? 100 : -100);
+              })
+              .strength(0.1)
+          )
+          .force("y", d3.forceY(innerHeight / 2));
+        simulation.alpha(1).alphaTarget(0).alphaDecay(0.0228).restart();
+      }
+    });
+</script>
